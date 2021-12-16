@@ -1,4 +1,6 @@
-import numpy as np
+import math
+import operator
+from functools import reduce
 from aocd import submit, data, lines
 
 
@@ -37,19 +39,18 @@ def part_one(packet):
 
 
 type_to_operator = {
-    0: np.sum,
-    1: np.prod,
-    2: np.min,
-    3: np.max,
-    5: lambda a_b: 1 if a_b[0] > a_b[1] else 0,
-    6: lambda a_b: 1 if a_b[0] < a_b[1] else 0,
-    7: lambda a_b: 1 if a_b[0] == a_b[1] else 0,
+    0: operator.add,
+    1: operator.mul,
+    2: min,
+    3: max,
+    5: operator.gt,
+    6: operator.lt,
+    7: operator.eq
 }
 
 
 def process_packet2(packet):
     version = int(packet[:3],2)
-    bits = len(packet)
     type_id = int(packet[3:6],2)
     packet = packet[6:]
     if type_id == 4:
@@ -59,12 +60,8 @@ def process_packet2(packet):
             packet = packet[5:]
         value += packet[1:5]
         packet = packet[5:]
-        value = int(value,2)
-        bits -= len(packet)
-        if packet.rstrip('0') == '':
-            return [(value, bits)]
-        else:
-            return [(value, bits)] + process_packet2(packet)
+        value = int(value, 2)
+        return value, packet
     else:
         length_id = int(packet[0])
         packet = packet[1:]
@@ -77,28 +74,28 @@ def process_packet2(packet):
             length = None
             sub_packets = int(packet[:length_bits], 2)
         packet = packet[length_bits:]
-        packet = packet[:]
-        v_and_bits = process_packet2(packet)
-        if type_id > 4:
-            sub_packets = 2
         if sub_packets:
-            operands = [v_b[0] for v_b in v_and_bits[:sub_packets]]
-            bits = sum([v_b[1] for v_b in v_and_bits[:sub_packets]]) + 7 + length_bits
-            return [(type_to_operator[type_id](operands), bits)] + v_and_bits[sub_packets:]
+            operands = []
+            for _ in range(sub_packets):
+                operand, packet = process_packet2(packet)
+                operands.append(operand)
         else:
             bits_processed = 0
+            length_packet = len(packet)
             operands = []
             i = 0
             while bits_processed < length:
-                operands.append(v_and_bits[i][0])
-                bits_processed += v_and_bits[i][1]
+                operand, packet = process_packet2(packet)
+                operands.append(operand)
+                bits_processed += length_packet - len(packet)
+                length_packet = len(packet)
                 i += 1
-        return [(type_to_operator[type_id](operands), length + 7 + length_bits)] + v_and_bits[i:]
+        return reduce(type_to_operator[type_id], operands), packet
 
 
 def part_two(packet):
     binary_packet = f"{int(packet, 16):0{len(packet*4)}b}"
-    return process_packet2(binary_packet)[0][0]
+    return int(process_packet2(binary_packet)[0])
 
 
 if __name__ == '__main__':
@@ -108,6 +105,6 @@ if __name__ == '__main__':
     #print(part_two("D8005AC2A8F0"))
     #print(part_two("F600BC2D8F"))
     #print(part_two("9C005AC2F8F0"))
-    #print(part_two("9C0141080250320F1802104A08"))
+    print(part_two("9C0141080250320F1802104A08"))
     print(part_two(data))
     #submit(part_two(data))

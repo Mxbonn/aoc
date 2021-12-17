@@ -1,3 +1,4 @@
+import math
 import re
 
 from aocd import submit, data, lines
@@ -18,11 +19,7 @@ def part_two(target_str):
     x0, x1 = [int(x) for x in re.search(r"x=(.+)\.\.(.+),", target_str).groups()]
     y0, y1 = [int(y) for y in re.search(r"y=(.+)\.\.(.+)", target_str).groups()]
     count = 0
-    min_x_probe = 1
-    while True:
-        if x0 <= triangular_number(min_x_probe) <= x1:
-            break
-        min_x_probe += 1
+    min_x_probe = math.floor((1/2) * (math.sqrt(8 * x0 + 1) + 1)) # https://www.wolframalpha.com/input/?i=solve+for+n%3A+%28n%5E2+-+n%29%2F2+%3E%3D+x
     for x in range(min_x_probe, x1 + 1):
         for y in range(y0, -y0):
             x_landing = y_landing = 0
@@ -46,4 +43,5 @@ if __name__ == '__main__':
     print(part_one("target area: x=20..30, y=-10..-5"))
     print(part_one(data))
     print(part_two("target area: x=20..30, y=-10..-5"))
+    print(part_two("target area: x=22..27, y=-10..-5"))
     print(part_two(data))

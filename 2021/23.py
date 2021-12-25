@@ -21,7 +21,6 @@ room_target = {v: k for k, v in amphipod_room_col.items()}
 room_locations = [0, 1, 3, 5, 7, 9, 10]
 
 
-@functools.cache
 def is_path_between(start_location, target_location, state):
     direction = 1 if target_location > start_location else -1
     for i in range(start_location + direction, target_location + direction, direction):
@@ -30,7 +29,6 @@ def is_path_between(start_location, target_location, state):
     return True
 
 
-@functools.cache
 def get_neighbours(state, depth_room=2):
     neighbours_with_cost = []
     for location in room_locations:
@@ -107,9 +105,11 @@ class Heap:
 
 
 def solve(data):
-    state = ('.', '.', data[0], '.', data[1], '.', data[2], '.', data[3], '.', '.')
+    begin_state = ('.', '.', data[0], '.', data[1], '.', data[2], '.', data[3], '.', '.')
+    state = begin_state
     goal_state = ('.', '.', "AAAA", '.', "BBBB", '.', "CCCC", '.', "DDDD", '.', '.')
     dists = {}
+    prev = {}
     visited = set()
     heap = Heap()
     heap.heap_push(0, state)
@@ -117,18 +117,25 @@ def solve(data):
     while True:
         d, state = heap.heap_pop()
         if state == goal_state:
-            return d
+            break
         visited.add(state)
         for neighbour, cost in get_neighbours(state, depth_room=4):
             alt = d + cost
             if neighbour not in visited:
-                if neighbour not in dists:
+                if neighbour not in dists or alt < dists[neighbour]:
                     dists[neighbour] = alt
+                    prev[neighbour] = state
+                    if alt < dists[neighbour]:
+                        heap.remove(neighbour)
                     heap.heap_push(alt, neighbour)
-                elif alt < dists[neighbour]:
-                    dists[neighbour] = alt
-                    heap.remove(neighbour)
-                    heap.heap_push(alt, neighbour)
+    print(d)
+    solving_sequence = [state]
+    while state != begin_state:
+        state = prev[state]
+        solving_sequence.append(state)
+    for state in solving_sequence[::-1]:
+        print(state)
+    return d
 
 
 data = ["DDDB", "BCBD", "ABAA", "CACC"]

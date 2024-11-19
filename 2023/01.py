@@ -1,12 +1,33 @@
 from aocd import submit, puzzle, examples  # noqa
 
+puzzle = puzzle
+
 
 def part_one(data):
-    pass
+    lines = data.splitlines()
+    sum = 0
+    for line in lines:
+        numbers_line = "".join(filter(str.isdigit, line))
+        line_sum = int(numbers_line[0] + numbers_line[-1])
+        sum += line_sum
+    return sum
 
 
 def part_two(data):
-    pass
+    mapping = {
+        "one": "one1one",
+        "two": "two2two",
+        "three": "three3three",
+        "four": "four4four",
+        "five": "five5five",
+        "six": "six6six",
+        "seven": "seven7seven",
+        "eight": "eight8eight",
+        "nine": "nine9nine",
+    }
+    for key, value in mapping.items():
+        data = data.replace(key, value)
+    return part_one(data)
 
 
 if __name__ == "__main__":
@@ -25,7 +46,6 @@ if __name__ == "__main__":
         else:
             solution = part_one(puzzle.input_data)
             print(solution)
-            assert solution is not None
             submit(solution)
     else:
         print("Part Two:")
@@ -44,5 +64,4 @@ if __name__ == "__main__":
         else:
             solution = part_two(puzzle.input_data)
             print(solution)
-            assert solution is not None
             submit(solution)
